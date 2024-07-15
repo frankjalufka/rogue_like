@@ -1,7 +1,9 @@
 #!/Users/fljalufka/anaconda3/bin/python
 import tcod
 
-from actions import EscapeAction, MovementAction
+from engine import Engine
+from entity import Entity
+from game_map import GameMap
 from input_handlers import EventHandler
 
 
@@ -10,9 +12,8 @@ def main() -> None:
     screen_width = 80
     screen_height = 50
 
-    # create the player position variables
-    player_x = int(screen_width / 2)
-    player_y = int(screen_height / 2)
+    map_width = 80
+    map_height = 45
 
     # read in the font that we want the game to use from the .png
     tileset = tcod.tileset.load_tilesheet(
@@ -20,6 +21,14 @@ def main() -> None:
     )
 
     event_handler = EventHandler()
+
+    player = Entity(int(screen_width / 2), int(screen_height / 2), "@", (255, 255, 255))
+    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@", (255, 255, 0))
+    entities = {npc, player}
+
+    game_map = GameMap(map_width, map_height)
+
+    engine = Engine(entities=entities, event_handler=event_handler, game_map=game_map, player=player)
 
     # creates the screen with width and height set earlier
     with tcod.context.new_terminal(
@@ -33,25 +42,13 @@ def main() -> None:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         #create game loop
         while True:
-            #tell the console where to print the @ symbol
-            root_console.print(x=player_x, y=player_y, string="@")
-            # updates the screen with what it has been told to display
-            context.present(root_console)
+            engine.render(console=root_console, context=context)
 
-            root_console.clear()
-            # allows the game to be exited without crashing 
-            for event in tcod.event.wait():
-                action = event_handler.dispatch(event)
+            events = tcod.event.wait()
 
-                if action is None:
-                    continue
+            engine.handle_events(events)
 
-                if isinstance(action, MovementAction):
-                    player_x += action.dx
-                    player_y += action.dy
-                
-                elif isinstance(action, EscapeAction):
-                    raise SystemExit()
+
 
 if __name__ == "__main__":
     main()

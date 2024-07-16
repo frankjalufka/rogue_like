@@ -1,5 +1,6 @@
 # Python chache
 __pychache__
+.pychache
 
 # Python virtual environment
 venv
